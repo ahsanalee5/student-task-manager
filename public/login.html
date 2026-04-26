@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body style="background-image: url('/img/1.png'); background-size: cover; background-repeat: no-repeat; background-position: center;">
+
+<div class="card">
+
+    <h2><b>Student Task Manager</b></h2>
+
+    <!-- login form -->
+    <form id="loginForm">
+
+        <input type="email" id="email" placeholder="Enter Email" required>
+        <input type="password" id="password" placeholder="Enter Password" required>
+        <button type="submit">Login</button>
+
+    </form>
+
+    <p>Don't have an account? <a href="register.html">Register</a></p>
+
+</div>
+
+<script>
+
+// when login form is submitted
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+
+    e.preventDefault()
+
+    // get values from inputs
+    var email = document.getElementById("email").value
+    var password = document.getElementById("password").value
+
+    // send to server
+    var response = await fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+
+    var data = await response.json()
+
+    // check if login was successful
+    if(data.message == "Login successful") {
+
+        // save user id in localstorage so i can use it later
+        localStorage.setItem("user_id", data.user.id)
+
+        // go to dashboard
+        window.location.href = "/dashboard.html"
+
+    } else {
+        alert("Wrong email or password")
+    }
+
+})
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body style="background-image: url('/img/1.png'); background-size: cover; background-repeat: no-repeat; background-position: center;">
+
+<div class="container">
+
+<h2><b>Dashboard</b></h2>
+
+<button onclick="logout()">Logout</button>
+
+<button onclick="toggleForm()" style="font-size:18px; padding:10px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer;">➕ Add Task</button>
+
+<div id="taskForm" style="display:none; margin-top:10px;">
+
+<input type="text" id="title" placeholder="Task Title">
+<input type="text" id="description" placeholder="Description">
+<input type="datetime-local" id="deadline">
+
+<select id="priority">
+<option value="Low">Low</option>
+<option value="Medium">Medium</option>
+<option value="High">High</option>
+</select>
+
+<select id="category">
+<option value="">Select Category</option>
+</select>
+
+<select id="dependency">
+<option value="">No Dependency</option>
+</select>
+
+<select id="repeat">
+<option value="None">No Repeat</option>
+<option value="Daily">Daily</option>
+<option value="Weekly">Weekly</option>
+<option value="Monthly">Monthly</option>
+</select>
+
+<!-- this button text changes between Add Task and Update Task -->
+<button id="formSubmitBtn" onclick="submitForm()">Add Task</button>
+
+</div>
+
+
+<select id="filterCategory" onchange="filterTasks()" style="margin-top:10px;">
+<option value="">All Categories</option>
+</select>
+
+
+<h3><b>Progress</b></h3>
+<div style="background:#ddd; border-radius:10px; overflow:hidden;">
+<div id="progressBar" style="height:20px; width:0%; background:#28a745; text-align:center; color:white;">
+0%
+</div>
+</div>
+
+
+<h3><b>Your Tasks</b></h3>
+<div id="taskList"></div>
+
+</div>
+
+
+<script>
+
+var user_id = localStorage.getItem("user_id")
+
+// this variable keeps track of which task is being edited
+// if null it means we are adding a new task
+// if it has a number it means we are editing that task id
+var editingTaskId = null
+
+
+function logout(){
+localStorage.clear()
+window.location.href = "login.html"
+}
+
+
+async function loadTasks(){
+
+var res = await fetch("/tasks/" + user_id)
+var tasks = await res.json()
+
+var selectedCategory = document.getElementById("filterCategory").value
+
+var filteredTasks = tasks
+
+if(selectedCategory != ""){
+filteredTasks = []
+for(var i = 0; i < tasks.length; i++){
+if(tasks[i].category_id == selectedCategory){
+filteredTasks.push(tasks[i])
+}
+}
+}
+
+var total = filteredTasks.length
+var completed = 0
+
+for(var i = 0; i < filteredTasks.length; i++){
+if(filteredTasks[i].status == "Completed"){
+completed++
+}
+}
+
+var percent = 0
+if(total > 0){
+percent = Math.round((completed / total) * 100)
+}
+
+var bar = document.getElementById("progressBar")
+bar.style.width = percent + "%"
+bar.innerText = percent + "%"
+
+var list = document.getElementById("taskList")
+list.innerHTML = ""
+
+for(var i = 0; i < filteredTasks.length; i++){
+
+var task = filteredTasks[i]
+
+var div = document.createElement("div")
+div.className = "task"
+
+var cat = "None"
+if(task.category_name){
+cat = task.category_name
+}
+
+var dep = "None"
+if(task.dependency_title){
+dep = task.dependency_title
+}
+
+div.innerHTML = "<h4>Task " + (i+1) + ": " + task.title + "</h4>"
+div.innerHTML += "<p>" + task.description + "</p>"
+div.innerHTML += "<p>Deadline: " + new Date(task.deadline).toLocaleString() + "</p>"
+div.innerHTML += "<p>Priority: " + task.priority + "</p>"
+div.innerHTML += "<p>Status: " + task.status + "</p>"
+div.innerHTML += "<p>Category: " + cat + "</p>"
+div.innerHTML += "<p>Depends on: " + dep + "</p>"
+div.innerHTML += "<button onclick='completeTask(" + task.id + ")'>Complete</button>"
+div.innerHTML += "<button onclick='openEditForm(" + task.id + ")' style='background: linear-gradient(to right, #f7971e, #ffd200); color:black;'>✏️ Edit</button>"
+div.innerHTML += "<button onclick='deleteTask(" + task.id + ")'>Delete</button>"
+
+list.appendChild(div)
+
+}
+
+}
+
+
+async function loadCategories(){
+
+var res = await fetch("/categories")
+var categories = await res.json()
+
+var dd = document.getElementById("category")
+dd.innerHTML = '<option value="">Select Category</option>'
+
+for(var i = 0; i < categories.length; i++){
+var op = document.createElement("option")
+op.value = categories[i].id
+op.text = categories[i].name
+dd.appendChild(op)
+}
+
+}
+
+
+async function loadFilterCategories(){
+
+var res = await fetch("/categories")
+var categories = await res.json()
+
+var dd = document.getElementById("filterCategory")
+dd.innerHTML = '<option value="">All Categories</option>'
+
+for(var i = 0; i < categories.length; i++){
+var op = document.createElement("option")
+op.value = categories[i].id
+op.text = categories[i].name
+dd.appendChild(op)
+}
+
+}
+
+
+async function loadDependencies(){
+
+var res = await fetch("/tasks/" + user_id)
+var tasks = await res.json()
+
+var dd = document.getElementById("dependency")
+dd.innerHTML = '<option value="">No Dependency</option>'
+
+for(var i = 0; i < tasks.length; i++){
+var op = document.createElement("option")
+op.value = tasks[i].id
+op.text = tasks[i].title
+dd.appendChild(op)
+}
+
+}
+
+
+// this function runs when edit button is clicked
+// it fills the form with existing task data
+async function openEditForm(id){
+
+// get all tasks first
+var res = await fetch("/tasks/" + user_id)
+var tasks = await res.json()
+
+// find the task with matching id
+var task = null
+for(var i = 0; i < tasks.length; i++){
+if(tasks[i].id == id){
+task = tasks[i]
+}
+}
+
+if(task == null){
+alert("Task not found")
+return
+}
+
+// fill the form fields with existing task data
+document.getElementById("title").value = task.title
+document.getElementById("description").value = task.description
+document.getElementById("priority").value = task.priority
+document.getElementById("repeat").value = task.repeat_type
+
+// format deadline for datetime-local input
+// datetime-local needs format: 2026-03-24T16:35
+if(task.deadline){
+var d = new Date(task.deadline)
+var year = d.getFullYear()
+var month = String(d.getMonth() + 1).padStart(2, "0")
+var day = String(d.getDate()).padStart(2, "0")
+var hours = String(d.getHours()).padStart(2, "0")
+var minutes = String(d.getMinutes()).padStart(2, "0")
+document.getElementById("deadline").value = year + "-" + month + "-" + day + "T" + hours + ":" + minutes
+}
+
+// set category dropdown to existing value
+if(task.category_id){
+document.getElementById("category").value = task.category_id
+}
+
+// set dependency dropdown to existing value
+if(task.dependency_task_id){
+document.getElementById("dependency").value = task.dependency_task_id
+}
+
+// save the task id we are editing
+editingTaskId = id
+
+// change button text to Update Task
+document.getElementById("formSubmitBtn").innerText = "Update Task"
+
+// show the form
+document.getElementById("taskForm").style.display = "block"
+
+// scroll up so user can see the form
+window.scrollTo(0, 0)
+
+}
+
+
+// this function decides whether to add or update
+function submitForm(){
+
+if(editingTaskId != null){
+// we are editing an existing task
+updateTask()
+}
+else{
+// we are adding a new task
+createTask()
+}
+
+}
+
+
+async function createTask(){
+
+var title = document.getElementById("title").value
+var description = document.getElementById("description").value
+var deadline = document.getElementById("deadline").value
+var priority = document.getElementById("priority").value
+var category = document.getElementById("category").value
+var dependency = document.getElementById("dependency").value
+var repeat = document.getElementById("repeat").value
+
+await fetch("/tasks", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+user_id: user_id,
+title: title,
+description: description,
+deadline: deadline,
+priority: priority,
+category_id: category || null,
+dependency_task_id: dependency || null,
+repeat_type: repeat
+})
+})
+
+// hide and reset form after adding
+resetForm()
+
+loadTasks()
+loadDependencies()
+
+}
+
+
+// new function to update existing task
+async function updateTask(){
+
+var title = document.getElementById("title").value
+var description = document.getElementById("description").value
+var deadline = document.getElementById("deadline").value
+var priority = document.getElementById("priority").value
+var category = document.getElementById("category").value
+var dependency = document.getElementById("dependency").value
+var repeat = document.getElementById("repeat").value
+
+await fetch("/tasks/edit/" + editingTaskId, {
+method: "PUT",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+title: title,
+description: description,
+deadline: deadline,
+priority: priority,
+category_id: category || null,
+dependency_task_id: dependency || null,
+repeat_type: repeat
+})
+})
+
+// hide and reset form after updating
+resetForm()
+
+loadTasks()
+loadDependencies()
+
+}
+
+
+// this resets form back to original empty state
+function resetForm(){
+
+document.getElementById("taskForm").style.display = "none"
+document.getElementById("title").value = ""
+document.getElementById("description").value = ""
+document.getElementById("deadline").value = ""
+document.getElementById("priority").value = "Low"
+document.getElementById("category").value = ""
+document.getElementById("dependency").value = ""
+document.getElementById("repeat").value = "None"
+document.getElementById("formSubmitBtn").innerText = "Add Task"
+
+// reset editing id back to null
+editingTaskId = null
+
+}
+
+
+async function completeTask(id){
+
+await fetch("/tasks/complete/" + id, {
+method: "PUT"
+})
+
+loadTasks()
+
+}
+
+
+async function deleteTask(id){
+
+await fetch("/tasks/" + id, {
+method: "DELETE"
+})
+
+loadTasks()
+loadDependencies()
+
+}
+
+
+function filterTasks(){
+loadTasks()
+}
+
+
+function toggleForm(){
+
+var form = document.getElementById("taskForm")
+
+if(form.style.display == "none"){
+form.style.display = "block"
+// if opening fresh make sure button says Add Task
+if(editingTaskId == null){
+document.getElementById("formSubmitBtn").innerText = "Add Task"
+}
+}
+else{
+// when closing form reset everything
+resetForm()
+}
+
+}
+
+
+loadTasks()
+loadDependencies()
+loadCategories()
+loadFilterCategories()
+
+</script>
+
+</body>
+</html>

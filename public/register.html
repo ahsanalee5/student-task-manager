@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body style="background-image: url('/img/1.png'); background-size: cover; background-repeat: no-repeat; background-position: center;">
+
+<div class="card">
+
+    <h2>Create Account for <b>Student Task Manager</b></h2>
+
+    <!-- register form -->
+    <form id="registerForm">
+
+        <input type="text" id="name" placeholder="Your Name" required>
+        <input type="email" id="email" placeholder="Your Email" required>
+        <input type="password" id="password" placeholder="Your Password" required>
+        <button type="submit">Register</button>
+
+    </form>
+
+    <p>Already have account? <a href="login.html">Login</a></p>
+
+</div>
+
+<script>
+
+// when register form submitted
+document.getElementById("registerForm").addEventListener("submit", async function(e) {
+
+    e.preventDefault()
+
+    // get form values
+    var name = document.getElementById("name").value
+    var email = document.getElementById("email").value
+    var password = document.getElementById("password").value
+
+    // send data to server
+    var response = await fetch("/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password
+        })
+    })
+
+    var data = await response.json()
+
+    alert(data)
+
+})
+
+</script>
+
+</body>
+</html>

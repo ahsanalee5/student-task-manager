@@ -1,0 +1,173 @@
+/* reset all default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* body styling */
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow: auto;
+    padding: 20px;
+}
+
+/* card for login and register pages */
+.card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    padding: 35px;
+    width: 360px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    color: white;
+}
+
+/* headings */
+h2 {
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: black;
+}
+
+/* input and select boxes */
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+}
+
+/* buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #00c6ff, #0072ff);
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+/* links */
+a {
+    text-decoration: none;
+    color: black;
+}
+
+/* paragraph text */
+p {
+    margin-top: 15px;
+    font-size: 14px;
+    color: black;
+}
+
+/* dashboard container */
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    color: white;
+}
+
+/* dashboard headings */
+.container h2,
+.container h3 {
+    color: black;
+    margin: 15px 0;
+}
+
+/* dashboard buttons */
+.container button {
+    width: 100%;
+    margin: 8px 0;
+}
+
+/* logout button red */
+.container button:first-of-type {
+    background: linear-gradient(to right, #ff416c, #ff4b2b);
+}
+
+/* add task button green */
+.container button:nth-of-type(2) {
+    background: linear-gradient(to right, #28a745, #218838);
+}
+
+/* task form box */
+#taskForm {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+/* progress bar */
+#progressBar {
+    background: linear-gradient(to right, #00b09b, #96c93d);
+    font-weight: bold;
+    color: black;
+}
+
+/* each task card */
+.task {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    margin-top: 12px;
+    border-radius: 10px;
+    transition: 0.3s;
+    color: black;
+}
+
+.task:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* task text */
+.task h4 {
+    margin-bottom: 5px;
+}
+
+.task p {
+    font-size: 13px;
+    margin: 3px 0;
+    color: black;
+}
+
+/* task buttons */
+.task button {
+    width: auto;
+    padding: 6px 10px;
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+/* complete button */
+.task button:first-of-type {
+    background: linear-gradient(to right, #00b09b, #96c93d);
+}
+
+/* delete button */
+.task button:last-of-type {
+    background: linear-gradient(to right, #ff416c, #ff4b2b);
+}
